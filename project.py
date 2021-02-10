@@ -314,11 +314,11 @@ while True:
             dff=pd.DataFrame(bills_filtered.groupby(['sharh', 'vahed'])['mande'].sum().reset_index())
         for i in range (0,dff.shape[0]):
             if(dff['mande'][i]<0):
-                print('واحد '+str(dff['vahed'][i])+'، '+str(-int(dff['mande'][i]))+' هزار تومان بابت هزینه ی '+str(dff['sharh'][i])+' '+'بستانکار است.')
+                print('واحد '+str(dff['vahed'][i])+'، '+str(-int(dff['mande'][i]))+' تومان بابت هزینه ی '+str(dff['sharh'][i])+' '+'بستانکار است.')
             elif(dff['mande'][i]==0):
                 print('تراز مالی واحد '+str(dff['vahed'][i])+' بابت هزینه ی '+str(dff['sharh'][i])+' '+' صفر است.')
             else:
-                print('واحد '+str(dff['vahed'][i])+'، '+str(int(dff['mande'][i]))+' هزار تومان بابت هزینه ی '+str(dff['sharh'][i])+' '+'بدهکار است.')
+                print('واحد '+str(dff['vahed'][i])+'، '+str(int(dff['mande'][i]))+' تومان بابت هزینه ی '+str(dff['sharh'][i])+' '+'بدهکار است.')
 
 
 
@@ -386,7 +386,7 @@ while True:
             #making changes in appearance: rotation of x axis ticks, title of the graph, x and y labels, and legend (which was set before)
             plt.tick_params(axis="x", rotation=70)
             plt.title("unit {}".format(i))
-            plt.ylabel('1000T')
+            plt.ylabel('Toman')
             plt.xlabel('date')
             plt.legend()
             plt.show()
@@ -441,7 +441,7 @@ while True:
             plt.bar(c['tarikh'].map(lambda x: tojalali(x)),c['mande'],label='mablagh')
            
             #making changes in appearance: rotation of x axis ticks, title of the graph, x and y labels, and legend (which was set before)
-            plt.ylabel('1000T')
+            plt.ylabel('Toman')
             plt.xlabel('date')
             plt.legend()
             plt.title(j)
@@ -469,10 +469,9 @@ allyears_pay['sharj']=(1.1*(allyears_pay['bedehkar']/tedad_month)).map(lambda x:
 
 
 for i in allyears_pay['vahed']:
-    message='براورد شارژ واحد {0} تقریبا برابر {1} هزار تومان است.'.format(i,allyears_pay['sharj'][i-1])
+    message='براورد شارژ واحد {0} تقریبا برابر {1} تومان است.'.format(i,allyears_pay['sharj'][i-1])
     print(message)
-    
-print(' به پایان آمد این دفتر \n حکایت همچناااااااااااااااااااااااااااااااااااااااااااان باقی')   
+
 
 
 
