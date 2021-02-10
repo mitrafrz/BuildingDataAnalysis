@@ -300,11 +300,11 @@ while True:
         dff=pd.DataFrame(bills_filtered.groupby('vahed',as_index=False)['mande'].sum())
         for i in range (0,dff.shape[0]):
             if dff['mande'][i]<0:
-                print('واحد '+str(dff['vahed'][i])+'، '+str(-int(dff['mande'][i]))+' هزار تومان بستانکار است.')
+                print('واحد '+str(dff['vahed'][i])+'، '+str(-int(dff['mande'][i]))+' تومان بستانکار است.')
             elif dff['mande'][i]==0:
                 print('تراز مالی واحد '+str(dff['vahed'][i])+' صفر است.')
             else:
-                print('واحد '+str(dff['vahed'][i])+'، '+str(int(dff['mande'][i]))+' هزار تومان بدهکار است.')  
+                print('واحد '+str(dff['vahed'][i])+'، '+str(int(dff['mande'][i]))+' تومان بدهکار است.')
     elif (showby=='خروج'):
         break
     elif (showby=='واحد به تفکیک شرح' or showby=='شرح به تفکیک واحد'):
@@ -422,7 +422,7 @@ while True:
        
         #making sure bills_filtered dates are in correct order, before passing it on to the next (plotting) section
         bills_filtered=bills_filtered.sort_values('timestamps')
-    
+
         for j in subcategories:
             #assigning 3 columns of bills_filtered to a new dataframe 'c'
             c=bills_filtered[bills_filtered['zirdaste']==j][['tarikh','mande','timestamps','sharh']]
