@@ -42,17 +42,17 @@ data2['gregorian_dates']=data2['date'].map(lambda x: togregorian(x))
 text_file = open("inputs.txt", "w")
 lines=[]
 for i in data2.index:
-    line="append {} {} {} {} 3 {} default {} 'nothing'".format(data2['gregorian_dates'][i].replace('-','/'),
+    line="append {} {} {} {} 3 {} default {} 'nothing'".format(data2['gregorian_dates'][i],
                                                                data2['mablagh'][i],data2['daste'][i],
                                                                data2['zirdaste'][i],
                                                                ','.join(list(map(lambda x: x[2:] , eval(data2['name'][i])))),
-                                                               data2['zirdaste'][i].replace('undefined',(data2['daste'][i] if (data2['daste'][i]=='elevator' or data2['daste'][i]=='parking' or data2['daste'][i]=='d') else 'e')))
+                                                               data2['zirdaste'][i].replace('undefined',(data2['daste'][i] if (data2['daste'][i]=='elevator' or data2['daste'][i]=='parking') else 'e')))
     lines.append(line)
 text_file.write('\n'.join(lines))
 text_file.close()
     
     
-    
+
     
 
 #opening the text file (created before) containing all bills info 
@@ -72,7 +72,7 @@ try:
         bills[column]=list(bills[column])
 except:
     bills={'vahed':[],'tarikh':[],'daste':[],'zirdaste':[], 'bedehkar':[],'sharh':[],'bestankar':[],'mande':[],'mablagh':[]}
-   
+ 
 
 #making slight changes in types of values, so they won't all be strings, and it'll get easier to use
 for line in vorudi:
@@ -108,7 +108,7 @@ for line in range(0,len(raw_vorudi)):
             #the dictionary below, will provide different ratios for different uses, according to the line (new_line[8]) and what category/subcategory this payment belongs to
             ratio={'parking':parking(vahed,RelatedUnits),'r':r(vahed,RelatedUnits),
                    'a':a(vahed,RelatedUnits),'e':1/len(RelatedUnits),
-                   'gas':gas(vahed,RelatedUnits), 'water':water(vahed,RelatedUnits),
+                   'd':1,'gas':gas(vahed,RelatedUnits), 'water':water(vahed,RelatedUnits),
                    'electricity':electricity(vahed,RelatedUnits),'avarez':avarez(vahed,RelatedUnits),'elevator':elevator(vahed,RelatedUnits)}
             new_line[2]=int(np.ceil(payment*ratio[new_line[8]])) #calculating unit "vahed"'s share of money, and putting it in place of the previous amount (the whole, not-yet-distributed money)
             l.append(new_line)
@@ -136,7 +136,7 @@ bills['mande']=np.array(bills['bedehkar'])-np.array(bills['bestankar'])
 #after all the changes are made, the bills dictionary will be saved as a dataframe
 bills=pd.DataFrame(bills)
 #a new column 'timestamps' is added to bills dataframe, which contains the string dates of 'tarikh' column, but converted into 'timestamp' type, which makes sorting-by-dates easier
-bills['timestamps']=pd.to_datetime(bills.tarikh)
+bills['timestamps']=pd.to_datetime(bills['tarikh'])
 bills=bills.sort_values(['vahed','timestamps','daste']).reset_index(drop=True)
 
 output=bills #creating a copy of bills, so any furter change that will be applied to the copy won't cause any change to the main dataframe (bills)
@@ -148,7 +148,7 @@ if(baze_str!='-'):
     start=list(map(lambda x: int(x),baze[0].split('/')))
     end=list(map(lambda x: int(x),baze[1].split('/')))
     #each date string (in 'YYYY/MM/DD' format) turns into a list in format of [YYYY,MM,DD] (in which all elements are integers), all dates in form of [YYYY,MM,DD] will be saved in an array, and then the dates outside the given range will be filtered out from bills_filtered (the copy of bills dataframe)
-    tarikh_array=np.array(bills['tarikh'].map(lambda x: list(map(lambda i: int(i),x.split('/'))) ))
+    tarikh_array=np.array(bills['tarikh'].map( lambda x: list(map(lambda i: int(i),x.split('/'))) ))
     output=bills[tarikh_filter(tarikh_array,start,end)].reset_index(drop=True)
 
 #output dataframe, is filtered by a few columns, some changes are made in the name of its columns, the dates are converted back to jalali dates, and it's finally saved as output.xlsx
@@ -206,9 +206,9 @@ bills_copy['jalali M']=bills_copy['jalali Y/M'].map(lambda x: int(x.split('/')[1
 bills_copy['jalali Y']=bills_copy['jalali Y/M'].map(lambda x: int(x.split('/')[0]))
 
 #first, a list of distinct 'YYYY/MM's is created (but only the last two elements of the list are kept in it)
-#after that, the rows in which their related 'YYYY/MM' is not included in the list above, will be filtered out of bills_copy 
+#after that, the rows in which their related 'YYYY/MM' is not included in the list above or don't belong to 'ghabz' category, will be filtered out of bills_copy 
 #finally after all the filtering is done on bills_copy, the sum of all payments (only the positive values, aka. the debts) are saved in bills_mohem
-bills_mohem=float(bills_copy[bills_copy['jalali Y/M'].isin(bills_copy['jalali Y/M'].unique().tolist()[-2:]) & (bills_copy['daste']=='ghabz')].aggregate({'bedehkar':'sum'}))      
+bills_mohem=float(bills_copy[(bills_copy['jalali Y/M'].isin(bills_copy['jalali Y/M'].unique().tolist()[-2:])) & (bills_copy['daste']=='ghabz')].aggregate({'bedehkar':'sum'}))      
 #the sum of all payments (both positive and negative values, aka equity, which were intially saved in 'mande' column) are saved in bills_mohem
 vaze_koli=float(sum(bills_copy['mande']))   
 
@@ -247,7 +247,7 @@ while True:
         i=len(list(pay_vahed['vahed']))
         if pay_vahed.loc[0,'pay']==pay_vahed.loc[i-1,'pay']:
             print('همه ی واحدها به یک اندازه بدهکارند')
-        elif (pay_vahed.loc[1,'pay']/pay_vahed.loc[0,'pay'])<0.8:
+        elif pay_vahed.loc[1,'pay']<=(0.8*pay_vahed.loc[0,'pay']):
             jomle='\nلطفا به واحد {} رجوع کنید.'.format(pay_vahed.loc[0,'vahed'])
             print(jomle)
             break
