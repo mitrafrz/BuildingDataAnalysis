@@ -45,8 +45,8 @@ for i in data2.index:
     line="append {} {} {} {} 3 {} default {} 'nothing'".format(data2['gregorian_dates'][i].replace('-','/'),
                                                                data2['mablagh'][i],data2['daste'][i],
                                                                data2['zirdaste'][i],
-                                                               ''+','.join(list(map(lambda x: x[2:] , eval(data2['name'][i])))),
-                                                               data2['zirdaste'][i].replace('undefined',('elevator' if data2['daste'][i]=='elevator' else 'e')))
+                                                               ','.join(list(map(lambda x: x[2:] , eval(data2['name'][i])))),
+                                                               data2['zirdaste'][i].replace('undefined',(data2['daste'][i] if (data2['daste'][i]=='elevator' or data2['daste'][i]=='parking' or data2['daste'][i]=='d') else 'e')))
     lines.append(line)
 text_file.write('\n'.join(lines))
 text_file.close()
@@ -108,7 +108,7 @@ for line in range(0,len(raw_vorudi)):
             #the dictionary below, will provide different ratios for different uses, according to the line (new_line[8]) and what category/subcategory this payment belongs to
             ratio={'parking':parking(vahed,RelatedUnits),'r':r(vahed,RelatedUnits),
                    'a':a(vahed,RelatedUnits),'e':1/len(RelatedUnits),
-                   'd':1, 'gas':gas(vahed,RelatedUnits), 'water':water(vahed,RelatedUnits),
+                   'gas':gas(vahed,RelatedUnits), 'water':water(vahed,RelatedUnits),
                    'electricity':electricity(vahed,RelatedUnits),'avarez':avarez(vahed,RelatedUnits),'elevator':elevator(vahed,RelatedUnits)}
             new_line[2]=int(np.ceil(payment*ratio[new_line[8]])) #calculating unit "vahed"'s share of money, and putting it in place of the previous amount (the whole, not-yet-distributed money)
             l.append(new_line)
@@ -208,7 +208,7 @@ bills_copy['jalali Y']=bills_copy['jalali Y/M'].map(lambda x: int(x.split('/')[0
 #first, a list of distinct 'YYYY/MM's is created (but only the last two elements of the list are kept in it)
 #after that, the rows in which their related 'YYYY/MM' is not included in the list above, will be filtered out of bills_copy 
 #finally after all the filtering is done on bills_copy, the sum of all payments (only the positive values, aka. the debts) are saved in bills_mohem
-bills_mohem=float(bills_copy[bills_copy['jalali Y/M'].isin(bills_copy['jalali Y/M'].unique().tolist()[-2:])].aggregate({'bedehkar':'sum'}))      
+bills_mohem=float(bills_copy[bills_copy['jalali Y/M'].isin(bills_copy['jalali Y/M'].unique().tolist()[-2:]) & (bills_copy['daste']=='ghabz')].aggregate({'bedehkar':'sum'}))      
 #the sum of all payments (both positive and negative values, aka equity, which were intially saved in 'mande' column) are saved in bills_mohem
 vaze_koli=float(sum(bills_copy['mande']))   
 
@@ -234,17 +234,17 @@ while True:
     #it is considered that if the sum of debts (from the very begining to the end of dates) is less than 80% of the sum of all payments taking place in last two months (based on the provided data), the status is good
     #if it's more than 80% of the sum of all payments taking place in last two months, but still less than (100% of) it, the status is semi-good
     #and if it's more than the sum of all payments taking place in last two months, the status is bad
-    if (vaze_koli/bills_mohem)<0.8:
+    if (vaze_koli)<(0.8*bills_mohem):
         print('وضعیت ساختمان مناسب است.')
         break
-    elif 0.8<=(vaze_koli/bills_mohem)<=1:
+    elif (vaze_koli)>=(0.8*bills_mohem) and (vaze_koli)<=(bills_mohem):
         print( 'ساختمان نسبتا نامطلوب است.')
-    elif (vaze_koli/bills_mohem)>1:
+    elif (vaze_koli)>(bills_mohem):
         print( 'وضع ساختمان اضطراریست.')
     #the user will also be offered to take a look at one (or two) top units with the highest amount of unpaid debts 
     edame=input("برای اگاهی از واحد(ها) با بیشترین بدهی 'ادامه' را وارد کنید.\n")
     if edame!='خروج':
-        i=len(list(df['Unit']))
+        i=len(list(pay_vahed['vahed']))
         if pay_vahed.loc[0,'pay']==pay_vahed.loc[i-1,'pay']:
             print('همه ی واحدها به یک اندازه بدهکارند')
         elif (pay_vahed.loc[1,'pay']/pay_vahed.loc[0,'pay'])<0.8:
@@ -300,11 +300,11 @@ while True:
         dff=pd.DataFrame(bills_filtered.groupby('vahed',as_index=False)['mande'].sum())
         for i in range (0,dff.shape[0]):
             if dff['mande'][i]<0:
-                print('واحد '+str(dff['vahed'][i])+'، '+str(-int(dff['mande'][i]))+' تومان بستانکار است.')
+                print('واحد '+str(dff['vahed'][i])+'، '+str(-int(dff['mande'][i]))+' هزار تومان بستانکار است.')
             elif dff['mande'][i]==0:
                 print('تراز مالی واحد '+str(dff['vahed'][i])+' صفر است.')
             else:
-                print('واحد '+str(dff['vahed'][i])+'، '+str(int(dff['mande'][i]))+' تومان بدهکار است.')
+                print('واحد '+str(dff['vahed'][i])+'، '+str(int(dff['mande'][i]))+' هزار تومان بدهکار است.')  
     elif (showby=='خروج'):
         break
     elif (showby=='واحد به تفکیک شرح' or showby=='شرح به تفکیک واحد'):
@@ -422,7 +422,7 @@ while True:
        
         #making sure bills_filtered dates are in correct order, before passing it on to the next (plotting) section
         bills_filtered=bills_filtered.sort_values('timestamps')
-
+    
         for j in subcategories:
             #assigning 3 columns of bills_filtered to a new dataframe 'c'
             c=bills_filtered[bills_filtered['zirdaste']==j][['tarikh','mande','timestamps','sharh']]
