@@ -29,7 +29,7 @@ data2=pd.read_excel('data2.xlsx')
 data2=data2[data2['name']!='[]'].reset_index(drop=True)
 
 #making slight changes in bills names
-r_daste={'Ghabz':'ghabz','nezafat':'nezafat','asansor':'elevator','tamirat':'tamirat','parking':'parking','other':'other'}
+r_daste={'Ghabz':'ghabz','nezafat':'nezafat','asansor':'elevator','tamirat':'tamirat','parking':'parking','other':'other','sharj':'sharj'}
 data2['daste']=data2['daste'].map(r_daste)
 r_zirdaste={'gaz':'gas','Water':'water','bargh':'electricity','avarez':'avarez','###':'undefined'}
 data2['zirdaste']=data2['zirdaste'].map(r_zirdaste)
@@ -46,7 +46,7 @@ for i in data2.index:
                                                                data2['mablagh'][i],data2['daste'][i],
                                                                data2['zirdaste'][i],
                                                                ','.join(list(map(lambda x: x[2:] , eval(data2['name'][i])))),
-                                                               data2['zirdaste'][i].replace('undefined',(data2['daste'][i] if (data2['daste'][i]=='elevator' or data2['daste'][i]=='parking') else 'e')))
+                                                               data2['zirdaste'][i].replace('undefined',(data2['daste'][i].replace('sharj','d') if (data2['daste'][i]=='elevator' or data2['daste'][i]=='parking' or data2['daste'][i]=='sharj') else 'e')))
     lines.append(line)
 text_file.write('\n'.join(lines))
 text_file.close()
